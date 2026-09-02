@@ -598,6 +598,7 @@
 
         function getColorByTimePercent(percent) {
             // percent: 1.0 = full time (green), 0.0 = no time (red)
+            // 90 min = 100% green, 45 min = 50% yellow, 22.5 min = 25% red
             if (percent > 0.5) {
                 // Green → Yellow (100% → 50%)
                 const t = (percent - 0.5) * 2; // 0..1
@@ -605,17 +606,25 @@
                     border: `rgb(${Math.round(220 + (40 - 220) * t)}, ${Math.round(206 - (206 - 167) * t)}, ${Math.round(10 + (69 - 10) * t)})`,
                     bg: 'linear-gradient(91deg,#E5EFEF 0%,#D9F1EB 50%,#DDEBFA 100%)'
                 };
-            } else {
-                // Yellow → Red (50% → 0%)
-                const t = percent * 2; // 0..1
+            } else if (percent > 0.25) {
+                // Yellow → Orange (50% → 25%)
+                const t = (percent - 0.25) * 4; // 0..1
                 return {
-                    border: `rgb(${Math.round(220 + (255 - 220) * (1 - t))}, ${Math.round(69 - 69 * (1 - t))}, 10)`,
-                    bg: t > 0.5
-                        ? 'linear-gradient(91deg,#FFF9E5 0%,#FFF3D9 50%,#FFEEDD 100%)'
-                        : 'linear-gradient(91deg,rgba(255,235,235,0.7) 0%,rgba(255,210,210,0.7) 100%)'
+                    border: `rgb(${Math.round(255 - (255 - 220) * t)}, ${Math.round(100 + (206 - 100) * t)}, 10)`,
+                    bg: 'linear-gradient(91deg,#FFF9E5 0%,#FFF3D9 50%,#FFEEDD 100%)'
+                };
+            } else {
+                // Orange → Red (25% → 0%)
+                const t = percent * 4; // 0..1
+                return {
+                    border: `rgb(255, ${Math.round(100 * t)}, 10)`,
+                    bg: 'linear-gradient(91deg,rgba(255,235,235,0.7) 0%,rgba(255,210,210,0.7) 100%)'
                 };
             }
         }
+
+        let timerClickCount = 0;
+        let timerClickTimeout = null;
 
         function renderActivePill(pill, timeStr, totalSeconds, maxSeconds) {
             const percent = Math.max(0, Math.min(1, totalSeconds / maxSeconds));
@@ -683,6 +692,35 @@
                 if (qrWrapper) qrWrapper.style.opacity = '1';
 
                 totalSeconds--;
+            }
+
+            // Add click handler for time editing (10 clicks)
+            const wrapper = document.getElementById('ticket-timer-wrapper');
+            if (wrapper) {
+                wrapper.style.cursor = 'pointer';
+                wrapper.onclick = function() {
+                    timerClickCount++;
+                    clearTimeout(timerClickTimeout);
+                    timerClickTimeout = setTimeout(() => { timerClickCount = 0; }, 2000);
+
+                    if (timerClickCount === 10) {
+                        timerClickCount = 0;
+                        const currentMinutes = Math.floor(totalSeconds / 60);
+                        const newMinutes = prompt('Введіть хвилини для квитка:', currentMinutes);
+                        if (newMinutes !== null && !isNaN(newMinutes) && newMinutes >= 0) {
+                            const newSeconds = parseInt(newMinutes) * 60;
+                            const newState = {
+                                number: state.number,
+                                expiresAt: Date.now() + (newSeconds * 1000)
+                            };
+                            localStorage.setItem(TICKET_STATE_KEY, JSON.stringify(newState));
+                            clearInterval(countdownTimer);
+                            totalSeconds = newSeconds;
+                            updateTimer();
+                            countdownTimer = setInterval(updateTimer, 1000);
+                        }
+                    }
+                };
             }
 
             updateTimer();
