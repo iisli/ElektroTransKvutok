@@ -636,7 +636,7 @@
 
             pill.innerHTML =
                 '<div style="width:16px;height:16px;border-radius:50%;border:2px solid ' + colors.border + ';background:transparent;flex-shrink:0;transition:border-color 0.5s ease;"></div>' +
-                '<span style="font-weight:600;color:#1a1a1a;">Квиток дійсний\u00a0\u2014\u00a0' + timeStr + '</span>';
+                '<span style="font-weight:400;color:#1a1a1a;">Квиток дійсний\u00a0\u2014\u00a0' + timeStr + '</span>';
         }
 
         function renderExpiredPill(pill) {
@@ -654,7 +654,7 @@
                 'border:1px solid #F7C0BE',
             ].join(';');
 
-            pill.innerHTML = '<span style="font-size:18px;">😐</span><span style="font-weight:600;color:#1a1a1a;">Квиток недійсний</span>';
+            pill.innerHTML = '<span style="font-size:18px;">😐</span><span style="font-weight:400;color:#1a1a1a;">Квиток недійсний</span>';
         }
 
         function startCountdown() {
