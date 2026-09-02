@@ -54,7 +54,6 @@
         html,
         body {
             margin: 0;
-
             background: #F4F4F4;
         }
 
@@ -419,9 +418,9 @@
             </div>
             <div class="ticket-layout--wrapper ">
                 <div class="ticket-layout--block ticket-info">
-                    <div class="ticket-layout--secure-wrapper" aria-hidden="true" style="background-color: #E8F0EF;">
+                    <div class="ticket-layout--secure-wrapper" aria-hidden="true" style="background-color: #E8F0EF; margin-top: 48px;">
                         <div class="ticket-layout--secure-inner-block" aria-hidden="true"
-                            style="color: #2A7A75; font-weight: 600;">
+                            style="color: #6BA3D8; font-weight: 600;">
                             <p class="ticket-layout--secure-text" aria-hidden="true">Життя — цікаве, і мотивація то є
                                 сильна: філософія, психологія. Найголовніше — залишайтеся людьми і кричіть, що ви живі.
                                 Я живий! <span style="margin-left: 8px;">⬥</span></p>
@@ -435,7 +434,7 @@
                     </div>
                     <div class="ticket-layout--merchant-title" role="heading" aria-level="1">
                         <span class="sr-only">квиток</span>
-                        Квиток Миколаївелектротранс Тролейбус | Mоnobank
+                        Миколаївелектротранс Тролейбус
                     </div>
                     <div class="ticket-layout--merchant-separator" aria-hidden="true"></div>
                     <div class="ticket-layout--purchased-info" id="purchase-info">
@@ -597,7 +596,30 @@
             return pill;
         }
 
-        function renderActivePill(pill, timeStr) {
+        function getColorByTimePercent(percent) {
+            // percent: 1.0 = full time (green), 0.0 = no time (red)
+            if (percent > 0.5) {
+                // Green → Yellow (100% → 50%)
+                const t = (percent - 0.5) * 2; // 0..1
+                return {
+                    border: `rgb(${Math.round(220 + (40 - 220) * t)}, ${Math.round(206 - (206 - 167) * t)}, ${Math.round(10 + (69 - 10) * t)})`,
+                    bg: 'linear-gradient(91deg,#E5EFEF 0%,#D9F1EB 50%,#DDEBFA 100%)'
+                };
+            } else {
+                // Yellow → Red (50% → 0%)
+                const t = percent * 2; // 0..1
+                return {
+                    border: `rgb(${Math.round(220 + (255 - 220) * (1 - t))}, ${Math.round(69 - 69 * (1 - t))}, 10)`,
+                    bg: t > 0.5
+                        ? 'linear-gradient(91deg,#FFF9E5 0%,#FFF3D9 50%,#FFEEDD 100%)'
+                        : 'linear-gradient(91deg,rgba(255,235,235,0.7) 0%,rgba(255,210,210,0.7) 100%)'
+                };
+            }
+        }
+
+        function renderActivePill(pill, timeStr, totalSeconds, maxSeconds) {
+            const percent = Math.max(0, Math.min(1, totalSeconds / maxSeconds));
+            const colors = getColorByTimePercent(percent);
             pill.style.cssText = [
                 'display:inline-flex',
                 'align-items:center',
@@ -608,12 +630,12 @@
                 'font-family:inherit',
                 'font-size:14px',
                 'line-height:20px',
-                'background:linear-gradient(91deg,#E5EFEF 0%,#D9F1EB 50%,#DDEBFA 100%)',
-                'border:none',
+                'background:' + colors.bg,
+                'border:none','transition:all 0.5s ease'
             ].join(';');
 
             pill.innerHTML =
-                '<div style="width:16px;height:16px;border-radius:50%;border:2px solid #28a745;background:transparent;flex-shrink:0;"></div>' +
+                '<div style="width:16px;height:16px;border-radius:50%;border:2px solid ' + colors.border + ';background:transparent;flex-shrink:0;transition:border-color 0.5s ease;"></div>' +
                 '<span style="font-weight:600;color:#1a1a1a;">Квиток дійсний\u00a0\u2014\u00a0' + timeStr + '</span>';
         }
 
@@ -639,6 +661,7 @@
             const qrWrapper = document.getElementById('qr-wrapper');
             const state = getTicketState();
             let totalSeconds = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+            const maxSeconds = TICKET_DURATION_SECONDS;
 
             function updateTimer() {
                 const wrapper = document.getElementById('ticket-timer-wrapper');
@@ -656,7 +679,7 @@
                 const h = Math.floor(totalSeconds / 3600);
                 const m = Math.floor((totalSeconds % 3600) / 60);
                 const s = totalSeconds % 60;
-                renderActivePill(pill, formatTime(h, m, s));
+                renderActivePill(pill, formatTime(h, m, s), totalSeconds, maxSeconds);
                 if (qrWrapper) qrWrapper.style.opacity = '1';
 
                 totalSeconds--;
@@ -701,7 +724,7 @@
                         width: 200,
                         height: 200,
                         type: "svg",
-                        data: 'http://patience-is-a-virtue.org/',
+                        data: 'https://mbnk.app/',
                         qrOptions: {
                             typeNumber: 5,
                             errorCorrectionLevel: 'Q'
