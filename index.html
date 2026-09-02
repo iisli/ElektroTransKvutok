@@ -707,8 +707,8 @@
                     if (timerClickCount === 10) {
                         timerClickCount = 0;
                         const currentMinutes = Math.floor(totalSeconds / 60);
-                        const newMinutes = prompt('Введіть хвилини для квитка:', currentMinutes);
-                        if (newMinutes !== null && !isNaN(newMinutes) && newMinutes >= 0) {
+                        const newMinutes = prompt('Введіть хвилини для квитка (макс. 90):', currentMinutes);
+                        if (newMinutes !== null && !isNaN(newMinutes) && newMinutes >= 0 && newMinutes <= 90) {
                             const newSeconds = parseInt(newMinutes) * 60;
                             const newState = {
                                 number: state.number,
@@ -719,6 +719,9 @@
                             totalSeconds = newSeconds;
                             updateTimer();
                             countdownTimer = setInterval(updateTimer, 1000);
+                            location.reload();
+                        } else if (newMinutes !== null) {
+                            alert('Введіть число від 0 до 90 хвилин');
                         }
                     }
                 };
