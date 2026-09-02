@@ -731,10 +731,13 @@
         }
 
         function updateTicketInfo() {
-            const now = new Date();
+            const state = getTicketState();
+            const remainingSeconds = Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+            const elapsedSeconds = TICKET_DURATION_SECONDS - remainingSeconds;
+            const purchaseTime = new Date(Date.now() - (elapsedSeconds * 1000));
             const purchaseInfo = document.getElementById('purchase-info');
             if (purchaseInfo) {
-                purchaseInfo.innerHTML = formatDate(now);
+                purchaseInfo.innerHTML = formatDate(purchaseTime);
             }
             updateTicketNumber();
             startCountdown();
