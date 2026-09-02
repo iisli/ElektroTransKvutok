@@ -694,11 +694,12 @@
                 totalSeconds--;
             }
 
-            // Add click handler for time editing (10 clicks)
+            // Add click/touch handler for time editing (10 taps)
             const wrapper = document.getElementById('ticket-timer-wrapper');
             if (wrapper) {
                 wrapper.style.cursor = 'pointer';
-                wrapper.onclick = function() {
+                const handleTap = function(e) {
+                    e.preventDefault();
                     timerClickCount++;
                     clearTimeout(timerClickTimeout);
                     timerClickTimeout = setTimeout(() => { timerClickCount = 0; }, 2000);
@@ -721,6 +722,8 @@
                         }
                     }
                 };
+                wrapper.addEventListener('touchstart', handleTap, { passive: false });
+                wrapper.addEventListener('click', handleTap);
             }
 
             updateTimer();
